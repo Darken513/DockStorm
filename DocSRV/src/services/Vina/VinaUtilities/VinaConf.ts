@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from "path";
-import { LOGGER } from "../utilities/Logging";
-import { VINA_CONF_KEYWORDS } from "../utilities/Constants";
+import { LOGGER } from "../../../utilities/Logging";
+import { VINA_CONF_KEYWORDS } from "../../../utilities/Constants";
 import { ParsedVinaConf } from "./ParsedVinaConf";
 
 /**
