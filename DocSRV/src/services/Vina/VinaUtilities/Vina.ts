@@ -1,7 +1,7 @@
 import * as child_process from 'child_process';
 import { VinaConf } from './VinaConf';
-import { parsePathForWin } from '../utilities/WinUtilities';
-import { LOGGER } from '../utilities/Logging';
+import { parsePathForWin } from '../../../utilities/WinUtilities';
+import { LOGGER } from '../../../utilities/Logging';
 import { VinaModeResDetails } from './VinaModeResDetails';
 import { VinaOutput } from './VinaOutput';
 

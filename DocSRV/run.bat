@@ -11,7 +11,7 @@ if errorlevel 1 (
 echo Waiting for the compilation to finish
 timeout /t 5
 rem Copy a file in a directory
-copy environnement\dev.env dist\
+xcopy configuration dist\configuration\ /y /e
 rem Running project
 echo Starting DOCSRV
 echo.
