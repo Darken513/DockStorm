@@ -3,6 +3,7 @@ import * as path from "path";
 import { LOGGER } from "../../../utilities/Logging";
 import { VINA_CONF_KEYWORDS } from "../../../utilities/Constants";
 import { ParsedVinaConf } from "./ParsedVinaConf";
+import { GodService } from '../../God.Service';
 
 /**
 * @class VinaConf
@@ -62,8 +63,8 @@ class VinaConf {
         let receptorBase = path.parse(this.confParsed.receptor).base
         let ligandBase = path.parse(this.confParsed.ligand).base
         let out = path.join(
-            process.env.output_parent_path,
-            process.env.output_folder_name,
+            GodService.globalConf.output.path,
+            GodService.globalConf.output.folderName,
             receptorBase.concat('_', ligandBase)
         );
         this.confParsed.out = out;
