@@ -1,0 +1,16 @@
+{
+    "configuration_version": 0,
+    "output": {
+        "path": "C:\\Users\\Darken\\Desktop\\",
+        "folderName": "Vina_serverOutput"
+    },
+    "vinaDefault": {
+        "size_x": 20,
+        "size_y": 20,
+        "size_z": 20,
+        "energy_range": 3,
+        "exhaustiveness": 8,
+        "num_modes": 9
+    }
+}
+
