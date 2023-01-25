@@ -16,6 +16,11 @@ import { GodService } from '../../godService/God.Service';
 class VinaConf {
     confParsed: ParsedVinaConf = new ParsedVinaConf();
     confPath: string;
+    outputCopiesPath: any = {
+        out:'',
+        log:''
+    }
+    activeSite: string = 'AS0';
     /**
     * @constructor - The constructor accepts an optional confPath parameter, and initializes the configuration from the file if provided.
     * @param {string} rawConf - The raw content of a vina configuration file.
@@ -54,20 +59,52 @@ class VinaConf {
         }
         return this;
     }
+    setActiveSite(name, vec3D) {
+        this.activeSite = name;
+        this.confParsed.center_x = vec3D.x;
+        this.confParsed.center_y = vec3D.y;
+        this.confParsed.center_z = vec3D.z;
+    }
     /**
     * A method that re-affects the output file based on the ligand and receptor paths
+    * if predifined then it decides where to make copies of them
     * @param {string} receptor - The receptor file path 
     * @returns {this} - The current instance of the class
     */
     reAffectOutput() {
-        let receptorBase = path.parse(this.confParsed.receptor).base
-        let ligandBase = path.parse(this.confParsed.ligand).base
+        let receptorBase = path.parse(this.confParsed.receptor).name;
+        let ligandBase = path.parse(this.confParsed.ligand).name;
         let out = path.join(
             GodService.globalConf.output.path,
             GodService.globalConf.output.folderName,
-            receptorBase.concat('_', ligandBase)
+            receptorBase.concat('_', ligandBase),
+            this.activeSite,
+            new Date().getTime().toString(),
+            'Result.pdpqt'
         );
-        this.confParsed.out = out;
+        if(!this.confPath){
+            this.confParsed.out = out
+            this.confParsed.log = path.join(path.parse(out).dir, 'log.txt')
+            return;
+        }
+        if(!this.confParsed.out){
+            this.confParsed.out = out
+            if(!this.confParsed.log)
+                this.confParsed.log = path.join(path.parse(out).dir, 'log.txt')
+            else
+                this.outputCopiesPath.log = path.join(path.parse(out).dir, 'log.txt')
+            return;
+        }
+        if(!this.confParsed.log){
+            this.confParsed.log = path.join(path.parse(out).dir, 'log.txt')
+            if(!this.confParsed.out)
+                this.confParsed.out = out
+            else
+                this.outputCopiesPath.out = out
+            return;
+        }
+        this.outputCopiesPath.log = path.join(path.parse(out).dir, 'log.txt')
+        this.outputCopiesPath.out = out;
     }
     /**
     * Initializes the VinaInstance by checking if the confPath exists and parsing it
@@ -85,6 +122,7 @@ class VinaConf {
         }
         const rawConf = fs.readFileSync(this.confPath).toString();
         this.parseAndInit(rawConf);
+        this.reAffectOutput();
     }
 
     /**

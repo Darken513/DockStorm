@@ -4,7 +4,9 @@ import { parsePathForWin } from '../../../utilities/WinUtilities';
 import { LOGGER } from '../../../utilities/Logging';
 import { VinaModeResDetails } from './VinaModeResDetails';
 import { VinaOutput } from './VinaOutput';
-
+import * as path from 'path';
+import * as fs from 'fs';
+import { GodService } from '../../godService/God.Service';
 
 /**
 * @class VinaInstance
@@ -23,6 +25,7 @@ class VinaInstance {
     */
     constructor(vinaConf: VinaConf) {
         this.vinaConf = vinaConf;
+        this.createConfFile();
     }
 
     /**
@@ -31,16 +34,63 @@ class VinaInstance {
     */
     reConfigure(vinaConf: VinaConf) {
         this.vinaConf = vinaConf;
+        this.createConfFile();
     }
-
+    /**
+    * createConfFile creates a configuration file with name 'conf.txt' in the working directory, 
+    * based on the vinaConf object and the global configuration
+    * @returns {string | undefined} returns the path of the created conf file or undefined if there was an error
+    */
+    createConfFile() {
+        let conf:any = this.vinaConf.confParsed
+        Object.keys(conf).forEach((key) => {
+            if (!conf[key])
+                conf[key] = GodService.globalConf.vinaDefault[key];
+        });
+        let rawConf = Object.keys(conf).reduce((confStr, key) => {
+            if (!conf[key])
+                return confStr;
+            confStr += key.concat(' = ', conf[key], '\n');
+            return confStr
+        }, '');
+        let saveDir = this.getFinalDirectory();
+        let confPath = path.join(this.getFinalDirectory(), 'conf.txt');
+        try {
+            if (!fs.existsSync(saveDir)) {
+                fs.mkdirSync(saveDir, { recursive: true });
+            }
+            fs.writeFileSync(confPath, rawConf.toString())
+        } catch (error) {
+            LOGGER.error({
+                message: 'Error writing file ' + JSON.stringify(error),
+                className: this.constructor.name
+            })
+            return undefined;
+        }
+        return confPath
+    }
+    /**
+    * getFinalDirectory is a helper method that returns the final directory where the output files should be saved.
+    */
+    getFinalDirectory() {
+        if (this.vinaConf.outputCopiesPath.out)
+            return path.parse(this.vinaConf.outputCopiesPath.out).dir;
+        else if (this.vinaConf.outputCopiesPath.log)
+            return path.parse(this.vinaConf.outputCopiesPath.log).dir;
+        else
+            return path.parse(this.vinaConf.confParsed.out).dir;
+    }
     /**
     * Runs the vina command using the exec method of child_process module,
     * and then triggers the parsing process.
     */
     runVinaCommand() {
+        let confPath = this.createConfFile();
+        if (!confPath)
+            return undefined;
         const cmd = parsePathForWin(<string>process.env.vinaPath).concat(
             ' --config ',
-            parsePathForWin(this.vinaConf.confPath)
+            parsePathForWin(confPath)
         );
         this.command = cmd;
         child_process.exec(cmd, (error, stdout, stderr) => {
@@ -67,7 +117,8 @@ class VinaInstance {
             }
             this.vinaOutput = this.getParsedVinaRes(stdout)
             //TODO now save the final content using the vinaConf details ( output ) along with the env file
-            console.log(this);
+            this.saveResData();
+            console.log(this)
         });
     }
 
@@ -146,6 +197,74 @@ class VinaInstance {
             }
         });
         return toret;
+    }
+    /**
+    * saveResData method saves the vina output data, copies the output and log files, and saves the parsed configuration.
+    */
+    saveResData() {
+        let saveDir = this.getFinalDirectory();
+        if (!fs.existsSync(saveDir)) {
+            fs.mkdirSync(saveDir, { recursive: true });
+        }
+        this.saveVinaOutput(saveDir);
+        this.copyOutLogCase();
+        this.saveParsedConf(saveDir);
+    }
+    /**
+    * saveVinaOutput method saves the parsed vina output data in a json file.
+    * @param {string} saveDir - The directory path where the vina output file will be saved.
+    */
+    saveVinaOutput(saveDir:string) {
+        fs.writeFile(path.join(saveDir, 'vinaOutput.json'), JSON.stringify(this.vinaOutput), (err) => {
+            if (!err)
+                return
+            LOGGER.error({
+                message: 'Error writing file ' + JSON.stringify(err),
+                className: this.constructor.name
+            })
+        });
+    }
+    /**
+    * copyOutLogCase method copies the output and log files based on the configuration.
+    */
+    copyOutLogCase() {
+        if (this.vinaConf.outputCopiesPath.out) {
+            fs.copyFile(this.vinaConf.confParsed.out, this.vinaConf.outputCopiesPath.out, (err) => {
+                if (!err)
+                    return
+                LOGGER.error({
+                    message: 'Error Copying file ' + JSON.stringify(err),
+                    className: this.constructor.name
+                })
+            })
+        }
+        if (this.vinaConf.outputCopiesPath.log) {
+            fs.copyFile(this.vinaConf.confParsed.log, this.vinaConf.outputCopiesPath.log, (err) => {
+                if (!err)
+                    return
+                LOGGER.error({
+                    message: 'Error Copying file ' + JSON.stringify(err),
+                    className: this.constructor.name
+                })
+            })
+        }
+    }
+    /**
+    * saveParsedConf method saves the parsed configuration in a json file.
+    * @param {string} saveDir - The directory path where the configuration file will be saved.
+    */
+    saveParsedConf(saveDir:string) {
+        fs.writeFile(path.join(saveDir, 'conf.json'), JSON.stringify({
+            vinaConf: this.vinaConf,
+            command: this.command
+        }), (err) => {
+            if (!err)
+                return
+            LOGGER.error({
+                message: 'Error writing file ' + JSON.stringify(err),
+                className: this.constructor.name
+            })
+        });
     }
 }
 
