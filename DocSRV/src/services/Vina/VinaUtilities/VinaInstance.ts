@@ -1,13 +1,14 @@
 import * as child_process from 'child_process';
+import * as path from 'path';
+import * as fs from 'fs';
 import { VinaConf } from './VinaConf';
 import { parsePathForWin } from '../../../utilities/WinUtilities';
 import { LOGGER } from '../../../utilities/Logging';
 import { VinaModeResDetails } from './VinaModeResDetails';
 import { VinaOutput } from './VinaOutput';
-import * as path from 'path';
-import * as fs from 'fs';
 import { GodService } from '../../godService/God.Service';
 import { copyFileAndLog, writeFileAndLog } from '../../../utilities/FSutilities';
+import { EventEmitter } from 'stream';
 
 /**
 * @class VinaInstance
@@ -20,6 +21,7 @@ class VinaInstance {
     vinaConf: VinaConf;
     vinaOutput: VinaOutput = new VinaOutput();
     command: string = '';
+    update: EventEmitter = new EventEmitter();
     /**
     * @constructor - The constructor accepts a VinaConf object, and assigns it to the vinaConf property.
     * @param {string} vinaConf - The Vina configuration file 
@@ -43,7 +45,7 @@ class VinaInstance {
     * @returns {string | undefined} returns the path of the created conf file or undefined if there was an error
     */
     createConfFile() {
-        let conf:any = this.vinaConf.confParsed
+        let conf: any = this.vinaConf.confParsed
         Object.keys(conf).forEach((key) => {
             if (!conf[key])
                 conf[key] = GodService.globalConf.vinaDefault[key];
@@ -87,42 +89,57 @@ class VinaInstance {
     */
     runVinaCommand() {
         let confPath = this.createConfFile();
+
         if (!confPath)
             return undefined;
+
         const cmd = parsePathForWin(<string>process.env.vinaPath).concat(
             ' --config ',
             parsePathForWin(confPath)
         );
+
         this.command = cmd;
-        child_process.exec(cmd, (error, stdout, stderr) => {
-            if (error) {
+        let percentage = 0;
+        let stdout = '';
+
+        const command = child_process.spawn(cmd, [], { shell: true });
+
+        command.stdout.on('data', (data) => {
+            stdout += data;
+            if (data.toString().length == 1) {
+                percentage += 1;
+                this.update.emit('percentage', {
+                    msg: Math.floor(percentage / 51 * 100)
+                });
+            }
+        });
+
+        command.on('close', (code) => {
+            if (code === 0) {
+                this.onVinaRunSuccess(stdout)
+                this.update.emit('percentage', { msg: 100 });
+            } else {
                 LOGGER.error({
-                    message: JSON.stringify(error),
+                    message: JSON.stringify(`Command failed with code ${code}`),
                     className: this.constructor.name
                 })
-                return;
             }
-            if (stderr) {
-                LOGGER.error({
-                    message: JSON.stringify(stderr),
-                    className: this.constructor.name
-                })
-                return;
-            }
-            if (!stdout) {
-                LOGGER.error({
-                    message: JSON.stringify("No stdout content for the following command : " + cmd),
-                    className: this.constructor.name
-                })
-                return;
-            }
-            this.vinaOutput = this.getParsedVinaRes(stdout)
-            //TODO now save the final content using the vinaConf details ( output ) along with the env file
-            this.saveResData();
-            console.log(this)
         });
     }
 
+    onVinaRunSuccess(stdout: string) {
+        if (!stdout) {
+            LOGGER.error({
+                message: JSON.stringify("No stdout content for the following command : " + this.command),
+                className: this.constructor.name
+            })
+            return;
+        }
+        this.vinaOutput = this.getParsedVinaRes(stdout)
+        //TODO now save the final content using the vinaConf details ( output ) along with the env file
+        this.saveResData();
+        console.log(this)
+    }
     /**
     * getParsedVinaRes - A function that parses the output of a vina command stdout
     * @param {string} stdout - The stdout of the Vina program
@@ -215,7 +232,7 @@ class VinaInstance {
     * saveVinaOutput method saves the parsed vina output data in a json file.
     * @param {string} saveDir - The directory path where the vina output file will be saved.
     */
-    saveVinaOutput(saveDir:string) {
+    saveVinaOutput(saveDir: string) {
         writeFileAndLog(path.join(saveDir, 'vinaOutput.json'), JSON.stringify(this.vinaOutput), this);
     }
     /**
@@ -233,7 +250,7 @@ class VinaInstance {
     * saveParsedConf method saves the parsed configuration in a json file.
     * @param {string} saveDir - The directory path where the configuration file will be saved.
     */
-    saveParsedConf(saveDir:string) {
+    saveParsedConf(saveDir: string) {
         writeFileAndLog(path.join(saveDir, 'conf.json'), JSON.stringify({
             vinaConf: this.vinaConf,
             command: this.command

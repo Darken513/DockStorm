@@ -19,6 +19,7 @@ app.get('/run', (req:any, res:any) => {
     let confPath = 'C:\\Users\\Darken\\Desktop\\docking\\glibenclamide with DPP4\\conf.txt';
     const vinaConf: VinaConf = new VinaConf(confPath)
     const vinaInstance: VinaInstance = new VinaInstance(vinaConf);
+    vinaInstance.update.addListener('percentage',(data)=>console.log(data));
     vinaInstance.runVinaCommand();
     res.send('Running a vina instance');
 });
