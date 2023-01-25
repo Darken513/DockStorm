@@ -7,6 +7,7 @@ import { VinaOutput } from './VinaOutput';
 import * as path from 'path';
 import * as fs from 'fs';
 import { GodService } from '../../godService/God.Service';
+import { copyFileAndLog, writeFileAndLog } from '../../../utilities/FSutilities';
 
 /**
 * @class VinaInstance
@@ -215,38 +216,17 @@ class VinaInstance {
     * @param {string} saveDir - The directory path where the vina output file will be saved.
     */
     saveVinaOutput(saveDir:string) {
-        fs.writeFile(path.join(saveDir, 'vinaOutput.json'), JSON.stringify(this.vinaOutput), (err) => {
-            if (!err)
-                return
-            LOGGER.error({
-                message: 'Error writing file ' + JSON.stringify(err),
-                className: this.constructor.name
-            })
-        });
+        writeFileAndLog(path.join(saveDir, 'vinaOutput.json'), JSON.stringify(this.vinaOutput), this);
     }
     /**
     * copyOutLogCase method copies the output and log files based on the configuration.
     */
     copyOutLogCase() {
         if (this.vinaConf.outputCopiesPath.out) {
-            fs.copyFile(this.vinaConf.confParsed.out!, this.vinaConf.outputCopiesPath.out, (err) => {
-                if (!err)
-                    return
-                LOGGER.error({
-                    message: 'Error Copying file ' + JSON.stringify(err),
-                    className: this.constructor.name
-                })
-            })
+            copyFileAndLog(this.vinaConf.confParsed.out!, this.vinaConf.outputCopiesPath.out, this)
         }
         if (this.vinaConf.outputCopiesPath.log) {
-            fs.copyFile(this.vinaConf.confParsed.log!, this.vinaConf.outputCopiesPath.log, (err) => {
-                if (!err)
-                    return
-                LOGGER.error({
-                    message: 'Error Copying file ' + JSON.stringify(err),
-                    className: this.constructor.name
-                })
-            })
+            copyFileAndLog(this.vinaConf.confParsed.log!, this.vinaConf.outputCopiesPath.log, this)
         }
     }
     /**
@@ -254,17 +234,10 @@ class VinaInstance {
     * @param {string} saveDir - The directory path where the configuration file will be saved.
     */
     saveParsedConf(saveDir:string) {
-        fs.writeFile(path.join(saveDir, 'conf.json'), JSON.stringify({
+        writeFileAndLog(path.join(saveDir, 'conf.json'), JSON.stringify({
             vinaConf: this.vinaConf,
             command: this.command
-        }), (err) => {
-            if (!err)
-                return
-            LOGGER.error({
-                message: 'Error writing file ' + JSON.stringify(err),
-                className: this.constructor.name
-            })
-        });
+        }), this);
     }
 }
 
