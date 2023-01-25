@@ -15,7 +15,7 @@ import { GodService } from '../../godService/God.Service';
 */
 class VinaConf {
     confParsed: ParsedVinaConf = new ParsedVinaConf();
-    confPath: string;
+    confPath: string | undefined;
     outputCopiesPath: any = {
         out:'',
         log:''
@@ -37,7 +37,7 @@ class VinaConf {
     * @param {string} ligand - The ligand file path 
     * @returns {this} - The current instance of the class
     */
-    setLigandPath(ligand) {
+    setLigandPath(ligand:string) {
         this.confParsed.ligand = ligand;
         if (this.confParsed.ligand) {
             this.reAffectOutput();
@@ -52,14 +52,14 @@ class VinaConf {
     * @param {string} receptor - The receptor file path 
     * @returns {this} - The current instance of the class
     */
-    setReceptorPath(receptor) {
+    setReceptorPath(receptor:string) {
         this.confParsed.receptor = receptor;
         if (this.confParsed.ligand) {
             this.reAffectOutput();
         }
         return this;
     }
-    setActiveSite(name, vec3D) {
+    setActiveSite(name:string, vec3D:any) {
         this.activeSite = name;
         this.confParsed.center_x = vec3D.x;
         this.confParsed.center_y = vec3D.y;
@@ -72,6 +72,8 @@ class VinaConf {
     * @returns {this} - The current instance of the class
     */
     reAffectOutput() {
+        if(!this.confParsed.receptor || !this.confParsed.ligand)
+            return;
         let receptorBase = path.parse(this.confParsed.receptor).name;
         let ligandBase = path.parse(this.confParsed.ligand).name;
         let out = path.join(
@@ -141,9 +143,9 @@ class VinaConf {
     */
     parseAndInit(rawConf: string) {
         const lines = rawConf.replace(/\r/g, '').split('\n').filter((line) => line.trim() !== '');
-        lines.forEach(line => {
-            const [key, value] = line.split(" = ")
-            this.confParsed[key] = value
+        lines.forEach((line:string) => {
+            const [key, value] = line.split(" = ");
+            (<any>this.confParsed)[key] = value;
         });
     }
 }

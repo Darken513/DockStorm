@@ -5,21 +5,21 @@ import { GodService } from "../../godService/God.Service";
 * is a class that represents the parsed configuration of the AutoDock Vina program.
 */
 class ParsedVinaConf {
-    receptor: string;
-    flex: string;
-    ligand: string;
-    out: string; //the output structure should be the following : absPath/receptor_ligand.pdpqt
-    log: string; //the output structure should be the following : absPath/resLog.txt
-    center_x: number;
-    center_y: number;
-    center_z: number;
-    size_x: number;
-    size_y: number;
-    size_z: number;
-    energy_range: number;
-    exhaustiveness: number;
-    num_modes: number;
-    cpu: number;
+    receptor: string|undefined;
+    flex: string|undefined;
+    ligand: string|undefined;
+    out: string|undefined; //the output structure should be the following : absPath/receptor_ligand.pdpqt
+    log: string|undefined; //the output structure should be the following : absPath/resLog.txt
+    center_x: number|undefined;
+    center_y: number|undefined;
+    center_z: number|undefined;
+    size_x: number|undefined;
+    size_y: number|undefined;
+    size_z: number|undefined;
+    energy_range: number|undefined;
+    exhaustiveness: number|undefined;
+    num_modes: number|undefined;
+    cpu: number|undefined;
     constructor() {
         this.loadDefaultValues();
     }

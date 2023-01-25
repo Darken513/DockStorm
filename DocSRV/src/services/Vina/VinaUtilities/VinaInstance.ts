@@ -78,7 +78,7 @@ class VinaInstance {
         else if (this.vinaConf.outputCopiesPath.log)
             return path.parse(this.vinaConf.outputCopiesPath.log).dir;
         else
-            return path.parse(this.vinaConf.confParsed.out).dir;
+            return path.parse(this.vinaConf.confParsed.out!).dir;
     }
     /**
     * Runs the vina command using the exec method of child_process module,
@@ -229,7 +229,7 @@ class VinaInstance {
     */
     copyOutLogCase() {
         if (this.vinaConf.outputCopiesPath.out) {
-            fs.copyFile(this.vinaConf.confParsed.out, this.vinaConf.outputCopiesPath.out, (err) => {
+            fs.copyFile(this.vinaConf.confParsed.out!, this.vinaConf.outputCopiesPath.out, (err) => {
                 if (!err)
                     return
                 LOGGER.error({
@@ -239,7 +239,7 @@ class VinaInstance {
             })
         }
         if (this.vinaConf.outputCopiesPath.log) {
-            fs.copyFile(this.vinaConf.confParsed.log, this.vinaConf.outputCopiesPath.log, (err) => {
+            fs.copyFile(this.vinaConf.confParsed.log!, this.vinaConf.outputCopiesPath.log, (err) => {
                 if (!err)
                     return
                 LOGGER.error({

@@ -9,10 +9,10 @@ import { LOGGER } from "../../../utilities/Logging";
 * @property {number} rsmd_ub - The RMSD upper bound of the mode.
 */
 class VinaModeResDetails {
-    mode: number;
-    affinity: number;
-    rsmd_lb: number;
-    rsmd_ub: number;
+    mode: number | undefined;
+    affinity: number | undefined;
+    rsmd_lb: number | undefined;
+    rsmd_ub: number | undefined;
     /** 
     * @constructor - The constructor initializes an empty instance of the class.
     */
@@ -24,7 +24,7 @@ class VinaModeResDetails {
     * @param {string} line - The line of text that represents the mode.
     * @return {VinaModeResDetails} - An instance of the class containing the parsed values, or undefined if the parsing failed.
     */
-    parseLineAndInit(line) {
+    parseLineAndInit(line:string) {
         let coords = line.trim().split(' ').filter(out => out.trim() != '');
         if (coords.length != 4) {
             LOGGER.error({

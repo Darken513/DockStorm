@@ -26,10 +26,11 @@ const LOGGER = winston.createLogger({
         })
     ),
     transports: [
-        new winston.transports.File({ filename: path.join(__dirname, '../../logs/error.log'), level: 'error' }),
-        new winston.transports.File({ filename: path.join(__dirname, '../../logs/combined.log') })
+        //new winston.transports.File({ filename: path.join(__dirname, '../../logs/error.log'), level: 'error' }),
+        //new winston.transports.File({ filename: path.join(__dirname, '../../logs/combined.log') })
     ]
 });
+
 if (process.env.NODE_ENV !== 'production') {
     LOGGER.add(new winston.transports.Console({
         format: winston.format.simple()
