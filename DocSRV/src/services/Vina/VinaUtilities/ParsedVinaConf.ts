@@ -1,4 +1,4 @@
-import { GodService } from "../../God.Service";
+import { GodService } from "../../godService/God.Service";
 
 /**
 * @class ParsedVinaConf

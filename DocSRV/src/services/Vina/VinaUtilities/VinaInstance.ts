@@ -16,7 +16,7 @@ import { VinaOutput } from './VinaOutput';
 class VinaInstance {
     vinaConf: VinaConf;
     vinaOutput: VinaOutput = new VinaOutput();
-    command: string;
+    command: string = '';
     /**
     * @constructor - The constructor accepts a VinaConf object, and assigns it to the vinaConf property.
     * @param {string} vinaConf - The Vina configuration file 
@@ -38,7 +38,7 @@ class VinaInstance {
     * and then triggers the parsing process.
     */
     runVinaCommand() {
-        const cmd = parsePathForWin(process.env.vinaPath).concat(
+        const cmd = parsePathForWin(<string>process.env.vinaPath).concat(
             ' --config ',
             parsePathForWin(this.vinaConf.confPath)
         );
@@ -65,7 +65,7 @@ class VinaInstance {
                 })
                 return;
             }
-            this.vinaOutput = this.getParsedVinaRes(stdout) 
+            this.vinaOutput = this.getParsedVinaRes(stdout)
             //TODO now save the final content using the vinaConf details ( output ) along with the env file
             console.log(this);
         });
@@ -105,9 +105,9 @@ class VinaInstance {
     /**
     * The getRandomSeedValue function extracts the random seed value from the output of a vina command.
     * @param {string} stdout - The output of the command, in string format.
-    * @return {number | undefined} - The extracted random seed value, or undefined if it cannot be found.
+    * @return {number | undefined} - The extracted random seed value, or -1 if it cannot be found.
     */
-    getRandomSeedValue(stdout) {
+    getRandomSeedValue(stdout: string) {
         let lines = stdout.split("\n");
         let seedLine = lines.find(line => line.startsWith("Using random seed:"));
         if (!seedLine) {
@@ -115,7 +115,7 @@ class VinaInstance {
                 message: "Can't find the random seed value for the following command stdout: " + this.command,
                 className: this.constructor.name
             })
-            return undefined;
+            return -1;
         }
         let seedSection = seedLine.split(":")[1];
         if (!seedSection) {
@@ -123,7 +123,7 @@ class VinaInstance {
                 message: JSON.stringify("Can't find the random seed value for the following command stdout: " + this.command),
                 className: this.constructor.name
             })
-            return undefined;
+            return -1;
         }
         return parseFloat(seedSection.trim());
     }
@@ -133,8 +133,8 @@ class VinaInstance {
     * @param {string} resTableRaw - The result table section of the output of the vina command.
     * @return {VinaModeResDetails[]} - An array of VinaModeResDetails objects.
     */
-    getModesResDetails(resTableRaw): VinaModeResDetails[] {
-        let toret = [];
+    getModesResDetails(resTableRaw: string): VinaModeResDetails[] {
+        let toret: any[] = [];
         if (this.vinaOutput.warningMsg) {
             return toret;
         }

@@ -2,19 +2,19 @@ import { VinaInstance } from './services/Vina/VinaUtilities/VinaInstance';
 import * as dotenv from 'dotenv';
 import { VinaConf } from './services/Vina/VinaUtilities/VinaConf';
 import * as path from 'path';
-import * as express from 'express';
-import { GodService } from './services/God.Service';
+import express from 'express';
+import { GodService } from './services/godService/God.Service';
 
 dotenv.config({ path: path.join(__dirname, '..\\configuration\\environement\\dev.env') });
 GodService.loadGlobalConf();
 
 const app = express();
 
-app.get('/', (req, res) => {
+app.get('/', (req:any, res:any) => {
     res.send('Hello, World!');
 });
 
-app.get('/run', (req, res) => {
+app.get('/run', (req:any, res:any) => {
     console.info('running a vina instance')
     let confPath = 'C:\\Users\\Darken\\Desktop\\docking\\glibenclamide with DPP4\\conf.txt';
     const vinaConf: VinaConf = new VinaConf(confPath)

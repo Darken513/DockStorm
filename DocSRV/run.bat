@@ -9,7 +9,7 @@ if errorlevel 1 (
     exit /b 1
 )
 echo Waiting for the compilation to finish
-timeout /t 5
+timeout /t 0
 rem Copy a file in a directory
 xcopy configuration dist\configuration\ /y /e
 rem Running project

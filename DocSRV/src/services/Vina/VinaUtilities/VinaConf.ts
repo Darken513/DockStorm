@@ -3,7 +3,7 @@ import * as path from "path";
 import { LOGGER } from "../../../utilities/Logging";
 import { VINA_CONF_KEYWORDS } from "../../../utilities/Constants";
 import { ParsedVinaConf } from "./ParsedVinaConf";
-import { GodService } from '../../God.Service';
+import { GodService } from '../../godService/God.Service';
 
 /**
 * @class VinaConf
