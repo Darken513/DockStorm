@@ -2,7 +2,7 @@ import * as child_process from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
 import { VinaConf } from './VinaConf';
-import { parsePathForWin } from '../../../utilities/WinUtilities';
+import { formarToHoursMinSec, parsePathForWin } from '../../../utilities/GeneralUtilities';
 import { LOGGER } from '../../../utilities/Logging';
 import { VinaModeResDetails } from './VinaModeResDetails';
 import { VinaOutput } from './VinaOutput';
@@ -99,17 +99,21 @@ class VinaInstance {
         );
 
         this.command = cmd;
-        let percentage = 0;
+        let starsCount = 0;
         let stdout = '';
-
+        let lastCall = new Date().getTime()
         const command = child_process.spawn(cmd, [], { shell: true });
 
         command.stdout.on('data', (data) => {
             stdout += data;
             if (data.toString().length == 1) {
-                percentage += 1;
+                let dTime = new Date().getTime() - lastCall;
+                starsCount += 1;
+                let percentage = Math.floor(starsCount / 51 * 100)
+                lastCall = new Date().getTime();
                 this.update.emit('percentage', {
-                    msg: Math.floor(percentage / 51 * 100)
+                    percentage: percentage,
+                    timeLeft: formarToHoursMinSec(Math.floor(((100 - percentage) * dTime) / 1000))
                 });
             }
         });

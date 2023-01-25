@@ -10,4 +10,16 @@ function parsePathForWin(path: string) {
     return `"${path}"`;
 }
 
-export { parsePathForWin }
+function formarToHoursMinSec(seconds:number){
+    let sec = seconds%60;
+    let min = Math.floor(seconds/60)%60;
+    let hours = Math.floor(Math.floor(seconds/60)/60);
+    if(hours){
+        return hours+'H '+min+'Min '+sec+ 's'
+    }
+    if(min){
+        return min+'Min '+sec+ 's'
+    }
+    return sec+ 's'
+}
+export { parsePathForWin, formarToHoursMinSec }
