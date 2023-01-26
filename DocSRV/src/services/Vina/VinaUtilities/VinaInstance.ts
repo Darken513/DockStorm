@@ -128,6 +128,7 @@ class VinaInstance {
                     className: this.constructor.name
                 })
             }
+            this.update.emit('closed', code);
         });
     }
 
