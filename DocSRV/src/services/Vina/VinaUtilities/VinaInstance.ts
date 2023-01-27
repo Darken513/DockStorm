@@ -147,7 +147,6 @@ class VinaInstance {
             return;
         }
         this.vinaOutput = this.getParsedVinaRes(stdout)
-        //TODO now save the final content using the vinaConf details ( output ) along with the env file
         this.saveResData();
     }
     /**

@@ -18,7 +18,7 @@ describe('GodService', () => {
         };
 
         // Configure the mocked fs.readFileSync to return the globalConf object
-        // when called with '../configuration/DocSRVconf.json' as the first argument
+        // when called with '../configuration/DOCSRVconf.json' as the first argument
         jest.spyOn(fs, 'readFileSync').mockReturnValue(JSON.stringify(globalConf));
 
         // Act
@@ -26,6 +26,6 @@ describe('GodService', () => {
 
         // Assert
         expect(GodService.globalConf).toEqual(globalConf);
-        expect(fs.readFileSync).toHaveBeenCalledWith(path.join(__dirname, '../../configuration/DocSRVconf.json'));
+        expect(fs.readFileSync).toHaveBeenCalledWith(path.join(__dirname, '../../configuration/DOCSRVconf.json'));
     });
 });
