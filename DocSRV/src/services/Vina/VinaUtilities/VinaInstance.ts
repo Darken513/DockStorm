@@ -122,6 +122,12 @@ class VinaInstance {
             if (code === 0) {
                 this.onVinaRunSuccess(stdout)
                 this.update.emit('percentage', { msg: 100 });
+                this.update.emit('vina_split', { msg: 'vina_split started' });
+                const splitCmd = parsePathForWin(<string>process.env.vinaSplitPath).concat(
+                    ' --input ',
+                    parsePathForWin(path.join(this.getFinalDirectory(), 'Result.pdbqt'))
+                );
+                child_process.execSync(splitCmd)
             } else {
                 LOGGER.error({
                     message: JSON.stringify(`Command failed with code ${code}`),
@@ -143,7 +149,6 @@ class VinaInstance {
         this.vinaOutput = this.getParsedVinaRes(stdout)
         //TODO now save the final content using the vinaConf details ( output ) along with the env file
         this.saveResData();
-        console.log(this)
     }
     /**
     * getParsedVinaRes - A function that parses the output of a vina command stdout

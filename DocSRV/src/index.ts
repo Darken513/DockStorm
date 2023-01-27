@@ -12,6 +12,8 @@ GodService.loadGlobalConf();
 VinaScheduler.stateEmitter.addListener('InstanceStarted',(data)=>console.log('InstanceStarted'))
 VinaScheduler.stateEmitter.addListener('InstanceScheduled',(data)=>console.log('InstanceScheduled'))
 VinaScheduler.stateEmitter.addListener('InstanceFinished',(data)=>console.log('InstanceFinished'))
+VinaScheduler.stateEmitter.addListener('alertUser',(data)=>console.log(data))
+VinaScheduler.stateEmitter.addListener('percentage',(data)=>console.log(data))
 VinaScheduler.stateEmitter.addListener('allDone',(data)=>console.log('allDone'))
 
 const app = express();

@@ -8,7 +8,7 @@ class ParsedVinaConf {
     receptor: string|undefined;
     flex: string|undefined;
     ligand: string|undefined;
-    out: string|undefined; //the output structure should be the following : absPath/receptor_ligand.pdpqt
+    out: string|undefined; //the output structure should be the following : absPath/receptor_ligand.pdbqt
     log: string|undefined; //the output structure should be the following : absPath/resLog.txt
     center_x: number|undefined;
     center_y: number|undefined;
