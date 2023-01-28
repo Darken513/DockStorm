@@ -1,6 +1,7 @@
 import * as child_process from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as kill from 'tree-kill'
 import { VinaConf } from './VinaConf';
 import { formarToHoursMinSec, parsePathForWin } from '../../../utilities/GeneralUtilities';
 import { LOGGER } from '../../../utilities/Logging';
@@ -9,6 +10,7 @@ import { VinaOutput } from './VinaOutput';
 import { GodService } from '../../godService/God.Service';
 import { copyFileAndLog, writeFileAndLog } from '../../../utilities/FSutilities';
 import { EventEmitter } from 'stream';
+import { InstanceEvents } from '../VinaEvents';
 
 /**
 * @class VinaInstance
@@ -22,6 +24,7 @@ class VinaInstance {
     vinaOutput: VinaOutput = new VinaOutput();
     command: string = '';
     update: EventEmitter = new EventEmitter();
+    execution: child_process.ChildProcessWithoutNullStreams | undefined;
     /**
     * @constructor - The constructor accepts a VinaConf object, and assigns it to the vinaConf property.
     * @param {string} vinaConf - The Vina configuration file 
@@ -29,12 +32,12 @@ class VinaInstance {
     constructor(vinaConf?: VinaConf);
     constructor(vinaConf: VinaConf) {
         this.vinaConf = vinaConf;
-        if(!this.vinaConf)
+        if (!this.vinaConf)
             return this;
         this.createConfFile();
     }
 
-    static fromJSON(json:any){
+    static fromJSON(json: any) {
         let toret = new VinaInstance();
         toret.vinaConf = VinaConf.fromJSON(json.vinaConf);
         return toret;
@@ -110,27 +113,30 @@ class VinaInstance {
         let starsCount = 0;
         let stdout = '';
         let lastCall = new Date().getTime()
-        const command = child_process.spawn(cmd, [], { shell: true });
+        this.execution = child_process.spawn(cmd, [], { shell: true });
 
-        command.stdout.on('data', (data) => {
+        this.execution.stdout.on('data', (data) => {
             stdout += data;
             if (data.toString().length == 1) {
                 let dTime = new Date().getTime() - lastCall;
                 starsCount += 1;
                 let percentage = Math.floor(starsCount / 51 * 100)
                 lastCall = new Date().getTime();
-                this.update.emit('percentage', {
+                this.update.emit(InstanceEvents.PERCENTAGE, {
                     percentage: percentage,
                     timeLeft: formarToHoursMinSec(Math.floor(((100 - percentage) * dTime) / 1000))
                 });
             }
         });
 
-        command.on('close', (code) => {
+        this.execution.on('close', (code) => {
             if (code === 0) {
                 this.onVinaRunSuccess(stdout)
-                this.update.emit('percentage', { msg: 100 });
-                this.update.emit('vina_split', { msg: 'vina_split started' });
+                this.update.emit(InstanceEvents.PERCENTAGE, {
+                    percentage: 100,
+                    timeLeft: '0s'
+                });
+                this.update.emit(InstanceEvents.SPLIT, { msg: 'vina_split started' });
                 const splitCmd = parsePathForWin(<string>process.env.vinaSplitPath).concat(
                     ' --input ',
                     parsePathForWin(path.join(this.getFinalDirectory(), 'Result.pdbqt'))
@@ -142,10 +148,26 @@ class VinaInstance {
                     className: this.constructor.name
                 })
             }
-            this.update.emit('closed', code);
+            this.update.emit(InstanceEvents.CLOSED, code);
         });
     }
 
+    killProcess() {
+        if (!this.execution)
+            return;
+        this.execution.stdout.destroy();
+        this.execution.stderr.destroy();
+        this.execution.stdout.removeAllListeners()
+        this.execution.removeAllListeners()
+        kill.default(this.execution!.pid!, (error) => {
+            if (error === null)
+                this.update.emit(InstanceEvents.KILL, { msg: 'process killed' });
+            LOGGER.error({
+                message: JSON.stringify("Cannot kill process with pid : " + this.execution!.pid!),
+                className: this.constructor.name
+            })
+        })
+    }
     onVinaRunSuccess(stdout: string) {
         if (!stdout) {
             LOGGER.error({

@@ -1,8 +1,8 @@
-import { EventEmitter } from "stream";
-import { GodService } from "../../godService/God.Service";
-import { VinaInstance } from "../VinaUtilities/VinaInstance";
 import * as path from 'path';
 import * as fs from 'fs';
+import { EventEmitter } from "stream";
+import { VinaInstance } from "../VinaUtilities/VinaInstance";
+import { InstanceEvents, SchedulerEvents } from "../VinaEvents";
 
 class VinaScheduler {
     static scheduledInstances: Array<VinaInstance> = [];
@@ -16,9 +16,6 @@ class VinaScheduler {
         let schedulerConfPath = path.join(__dirname, '../../../configuration/SCHEDULERconf.json');
         let rawConf = fs.readFileSync(schedulerConfPath).toString();
         VinaScheduler.scheduledInstances = JSON.parse(rawConf).vinaScheduled.map((instanceJSON: any) => VinaInstance.fromJSON(instanceJSON));
-        console.info(JSON.parse(rawConf))
-        if (VinaScheduler.scheduledInstances.length)
-            VinaScheduler.runScheduled();
     }
 
     static updateSchedulerConf() {
@@ -32,46 +29,57 @@ class VinaScheduler {
         fs.writeFileSync(schedulerConfPath, JSON.stringify(parsedConf));
     }
 
-    static runScheduled() {
-        if (this.currentInstance)
-            return;
-        this.currentInstance = this.scheduledInstances[0];
-        this.currentInstance.update.addListener('closed', this.runNext.bind(this));
-        this.currentInstance.update.addListener('percentage', this.updatePercentage.bind(this));
-        this.currentInstance.update.addListener('vina_split', this.alertUser.bind(this));
-        this.stateEmitter.emit('InstanceStarted', this.currentInstance);
-        this.currentInstance.runVinaCommand();
-    }
-
-    static updatePercentage(param: any) {
-        this.stateEmitter.emit('percentage', param);
-    }
-
-    static alertUser(param: any) {
-        this.stateEmitter.emit('alertUser', param);
-    }
-
-    static scheduel(vinaInstance: VinaInstance) {
+    static schedule(vinaInstance: VinaInstance) {
         this.scheduledInstances.push(vinaInstance);
         VinaScheduler.updateSchedulerConf();
-        this.stateEmitter.emit('InstanceScheduled', vinaInstance);
-        if (this.currentInstance)
+        this.stateEmitter.emit(SchedulerEvents.SCHEDULED, vinaInstance);
+    }
+
+    static runScheduled() {
+        if (this.currentInstance || !this.scheduledInstances.length)
             return;
-        this.runScheduled();
+        this.currentInstance = this.scheduledInstances[0];
+        this.currentInstance.update.addListener(InstanceEvents.CLOSED, this.runNext.bind(this));
+        this.currentInstance.update.addListener(InstanceEvents.PERCENTAGE, this.updatePercentage.bind(this));
+        this.currentInstance.update.addListener(InstanceEvents.SPLIT, this.alertUser.bind(this));
+        this.currentInstance.update.addListener(InstanceEvents.KILL, this.onProcessKill.bind(this));
+        this.stateEmitter.emit(SchedulerEvents.STARTED, this.currentInstance);
+        this.currentInstance.runVinaCommand();
     }
 
     static runNext(msg: any) {
         let done = this.scheduledInstances.shift();
         done?.update.removeAllListeners();
-        this.stateEmitter.emit('InstanceFinished', { instance: done, exitCode: msg });
+        this.stateEmitter.emit(SchedulerEvents.FINISHED, { instance: done, exitCode: msg });
         this.currentInstance = undefined;
         VinaScheduler.updateSchedulerConf();
         if (!this.scheduledInstances.length) {
-            this.stateEmitter.emit('allDone', true);
+            this.stateEmitter.emit(SchedulerEvents.ALLDONE, true);
             return;
         }
         this.runScheduled();
     };
+
+    static stopScheduled() {
+        if (!this.currentInstance)
+            return;
+        this.currentInstance.killProcess();
+    }
+
+    static updatePercentage(evt: any) {
+        this.stateEmitter.emit(SchedulerEvents.PERCENTAGE, evt);
+    }
+
+    static alertUser(evt: any) {
+        this.stateEmitter.emit(SchedulerEvents.ALERT, evt);
+    }
+
+    static onProcessKill(evt: any) {
+        this.currentInstance!.update.removeAllListeners();
+        this.alertUser(evt);
+        this.currentInstance = undefined;
+    }
+
 }
 
 export { VinaScheduler }
