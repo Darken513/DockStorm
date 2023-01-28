@@ -32,6 +32,25 @@ class ParsedVinaConf {
         this.exhaustiveness = globalConf.exhaustiveness;
         this.num_modes = globalConf.num_modes;
     }
+    static fromJSON(json:any){
+        let toret = new ParsedVinaConf();
+        toret.receptor = json.receptor; 
+        toret.flex = json.flex; 
+        toret.ligand = json.ligand; 
+        toret.out = json.out; 
+        toret.log = json.log;  
+        toret.center_x = json.center_x;
+        toret.center_y = json.center_y;
+        toret.center_z = json.center_z;
+        toret.size_x = json.size_x;
+        toret.size_y = json.size_y;
+        toret.size_z = json.size_z;
+        toret.energy_range = json.energy_range;
+        toret.exhaustiveness = json.exhaustiveness;
+        toret.num_modes = json.num_modes;
+        toret.cpu = json.cpu;
+        return toret;
+    }
 }
 
 export { ParsedVinaConf }

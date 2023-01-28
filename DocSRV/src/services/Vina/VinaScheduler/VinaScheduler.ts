@@ -12,20 +12,23 @@ class VinaScheduler {
         throw new Error("Class can't be instantiated");
     }
 
-    //todo should create vina instances from the parsed rawConf (add fromJSON method to VinaInstance)
     static loadSchedulerConf() {
         let schedulerConfPath = path.join(__dirname, '../../../configuration/SCHEDULERconf.json');
         let rawConf = fs.readFileSync(schedulerConfPath).toString();
-        VinaScheduler.scheduledInstances = JSON.parse(rawConf).vinaScheduled;
+        VinaScheduler.scheduledInstances = JSON.parse(rawConf).vinaScheduled.map((instanceJSON: any) => VinaInstance.fromJSON(instanceJSON));
+        console.info(JSON.parse(rawConf))
         if (VinaScheduler.scheduledInstances.length)
             VinaScheduler.runScheduled();
     }
 
-    //todo should clear extrat informations ( update event )
     static updateSchedulerConf() {
         let schedulerConfPath = path.join(__dirname, '../../../configuration/SCHEDULERconf.json');
         let parsedConf = JSON.parse(fs.readFileSync(schedulerConfPath).toString());
-        parsedConf.vinaScheduled = VinaScheduler.scheduledInstances;
+        parsedConf.vinaScheduled = VinaScheduler.scheduledInstances.map((instance) => {
+            return {
+                vinaConf: instance.vinaConf
+            };
+        });
         fs.writeFileSync(schedulerConfPath, JSON.stringify(parsedConf));
     }
 

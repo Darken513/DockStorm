@@ -18,6 +18,14 @@ class VinaModeResDetails {
     */
     constructor() { }
 
+    static fromJSON(json:any){
+        let toret = new VinaModeResDetails();
+        toret.mode = json.mode;
+        toret.affinity = json.affinity;
+        toret.rsmd_lb = json.rsmd_lb;
+        toret.rsmd_ub = json.rsmd_ub;
+        return toret;
+    }
     /** 
     * @method parseLineAndInit - A method that parses a line of text that represents a mode,
     * and initializes the properties of the class based on the values in the line.

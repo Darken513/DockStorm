@@ -15,6 +15,13 @@ class VinaOutput {
     * @constructor - The constructor initializes an empty instance of the class.
     */
     constructor() { }
+    static fromJSON(json:any){
+        let toret = new VinaOutput();
+        toret.randomSeed = json.randomSeed;
+        toret.modes = json.modes.map((modeJSON:any)=>VinaModeResDetails.fromJSON(modeJSON))
+        toret.warningMsg = json.warningMsg;
+        return toret;
+    }
 }
 
 export { VinaOutput }

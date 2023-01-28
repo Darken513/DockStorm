@@ -30,7 +30,14 @@ class VinaConf {
             this.initFromPath(confPath);
         }
     }
-
+    static fromJSON(json:any){
+        let toret = new VinaConf();
+        toret.confParsed = ParsedVinaConf.fromJSON(json.confParsed);
+        toret.confPath = json.confPath;
+        toret.outputCopiesPath = json.outputCopiesPath;
+        toret.activeSite = json.activeSite;
+        return toret;
+    }
     /**
     * setLigandPath - A method that sets the ligand for the AutoDock Vina configuration and re-affects
     * the parameter out ( output file ) if it has a receptor path as well

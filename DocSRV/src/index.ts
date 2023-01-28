@@ -7,8 +7,8 @@ import { GodService } from './services/godService/God.Service';
 import { VinaScheduler } from './services/Vina/VinaScheduler/VinaScheduler';
 
 dotenv.config({ path: path.join(__dirname, '..\\configuration\\environement\\dev.env') });
-GodService.loadGlobalConf();
 
+//add listeners to scheduler
 VinaScheduler.stateEmitter.addListener('InstanceStarted',(data)=>console.log('InstanceStarted'))
 VinaScheduler.stateEmitter.addListener('InstanceScheduled',(data)=>console.log('InstanceScheduled'))
 VinaScheduler.stateEmitter.addListener('InstanceFinished',(data)=>console.log('InstanceFinished'))
@@ -16,6 +16,11 @@ VinaScheduler.stateEmitter.addListener('alertUser',(data)=>console.log(data))
 VinaScheduler.stateEmitter.addListener('percentage',(data)=>console.log(data))
 VinaScheduler.stateEmitter.addListener('allDone',(data)=>console.log('allDone'))
 
+//run load config
+GodService.loadGlobalConf();
+VinaScheduler.loadSchedulerConf();
+
+//start express server
 const app = express();
 
 app.get('/', (req:any, res:any) => {

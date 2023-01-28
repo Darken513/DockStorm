@@ -8,7 +8,6 @@ class GodService {
         let globalConfPath = path.join(__dirname, '../../configuration/DOCSRVconf.json');
         let rawConf = fs.readFileSync(globalConfPath).toString();
         GodService.globalConf = JSON.parse(rawConf);
-        VinaScheduler.loadSchedulerConf();
     }
 }
 
