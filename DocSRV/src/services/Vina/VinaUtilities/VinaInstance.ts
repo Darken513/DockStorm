@@ -34,7 +34,6 @@ class VinaInstance {
         this.vinaConf = vinaConf;
         if (!this.vinaConf)
             return this;
-        this.createConfFile();
     }
 
     static fromJSON(json: any) {
@@ -48,7 +47,6 @@ class VinaInstance {
     */
     reConfigure(vinaConf: VinaConf) {
         this.vinaConf = vinaConf;
-        this.createConfFile();
     }
     /**
     * createConfFile creates a configuration file with name 'conf.txt' in the working directory, 
@@ -99,6 +97,7 @@ class VinaInstance {
     * and then triggers the parsing process.
     */
     runVinaCommand() {
+        this.vinaConf.reAffectOutput();
         let confPath = this.createConfFile();
 
         if (!confPath)
@@ -160,8 +159,10 @@ class VinaInstance {
         this.execution.stdout.removeAllListeners()
         this.execution.removeAllListeners()
         kill.default(this.execution!.pid!, (error) => {
-            if (error === null)
+            if (error === null){
                 this.update.emit(InstanceEvents.KILL, { msg: 'process killed' });
+                return;
+            }
             LOGGER.error({
                 message: JSON.stringify("Cannot kill process with pid : " + this.execution!.pid!),
                 className: this.constructor.name
@@ -177,6 +178,7 @@ class VinaInstance {
             return;
         }
         this.vinaOutput = this.getParsedVinaRes(stdout)
+        this.vinaConf.resolveTime = new Date().getTime();
         this.saveResData();
     }
     /**
@@ -272,7 +274,10 @@ class VinaInstance {
     * @param {string} saveDir - The directory path where the vina output file will be saved.
     */
     saveVinaOutput(saveDir: string) {
-        writeFileAndLog(path.join(saveDir, 'vinaOutput.json'), JSON.stringify(this.vinaOutput), this);
+        writeFileAndLog(path.join(saveDir, 'vinaOutput.json'), JSON.stringify({ 
+            resolveTime: this.vinaConf.resolveTime, 
+            vinaOutput: this.vinaOutput 
+        }), this);
     }
     /**
     * copyOutLogCase method copies the output and log files based on the configuration.

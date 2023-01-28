@@ -21,6 +21,8 @@ class VinaConf {
         log: ''
     }
     activeSite: string = 'AS0';
+    scheduleTime: number | undefined;
+    resolveTime: number | undefined;
     /**
     * @constructor - The constructor accepts an optional confPath parameter, and initializes the configuration from the file if provided.
     * @param {string} rawConf - The raw content of a vina configuration file.
@@ -36,6 +38,8 @@ class VinaConf {
         toret.confPath = json.confPath;
         toret.outputCopiesPath = json.outputCopiesPath;
         toret.activeSite = json.activeSite;
+        toret.scheduleTime = json.scheduleTime;
+        toret.resolveTime = json.resolveTime;
         return toret;
     }
     /**
@@ -46,9 +50,6 @@ class VinaConf {
     */
     setLigandPath(ligand: string) {
         this.confParsed.ligand = ligand;
-        if (this.confParsed.ligand) {
-            this.reAffectOutput();
-        }
         return this;
     }
     //TODO Find a way to use these in a proper way 
@@ -61,9 +62,6 @@ class VinaConf {
     */
     setReceptorPath(receptor: string) {
         this.confParsed.receptor = receptor;
-        if (this.confParsed.ligand) {
-            this.reAffectOutput();
-        }
         return this;
     }
     setActiveSite(name: string, vec3D: any) {
@@ -88,7 +86,7 @@ class VinaConf {
             GodService.globalConf.output.folderName,
             receptorBase.concat('_', ligandBase),
             this.activeSite,
-            new Date().getTime().toString(),
+            this.scheduleTime!.toString(),
             'Result.pdbqt'
         );
         if (!this.confPath) {
@@ -131,7 +129,6 @@ class VinaConf {
         }
         const rawConf = fs.readFileSync(this.confPath).toString();
         this.parseAndInit(rawConf);
-        this.reAffectOutput();
     }
 
     /**

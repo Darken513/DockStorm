@@ -23,13 +23,16 @@ class VinaScheduler {
         let parsedConf = JSON.parse(fs.readFileSync(schedulerConfPath).toString());
         parsedConf.vinaScheduled = VinaScheduler.scheduledInstances.map((instance) => {
             return {
-                vinaConf: instance.vinaConf
+                vinaConf: instance.vinaConf,
+                scheduleTime: instance.vinaConf.scheduleTime,
+                resolveTime: instance.vinaConf.resolveTime
             };
         });
         fs.writeFileSync(schedulerConfPath, JSON.stringify(parsedConf));
     }
 
     static schedule(vinaInstance: VinaInstance) {
+        vinaInstance.vinaConf.scheduleTime = new Date().getTime();
         this.scheduledInstances.push(vinaInstance);
         VinaScheduler.updateSchedulerConf();
         this.stateEmitter.emit(SchedulerEvents.SCHEDULED, vinaInstance);
