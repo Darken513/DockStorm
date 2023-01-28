@@ -26,11 +26,19 @@ class VinaInstance {
     * @constructor - The constructor accepts a VinaConf object, and assigns it to the vinaConf property.
     * @param {string} vinaConf - The Vina configuration file 
     */
+    constructor(vinaConf?: VinaConf);
     constructor(vinaConf: VinaConf) {
         this.vinaConf = vinaConf;
+        if(!this.vinaConf)
+            return this;
         this.createConfFile();
     }
 
+    static fromJSON(json:any){
+        let toret = new VinaInstance();
+        toret.vinaConf = VinaConf.fromJSON(json.vinaConf);
+        return toret;
+    }
     /**
     * Used to update the configuration of the class with new settings.
     * @param {VinaConf} vinaConf - The new configuration settings to be used.
@@ -147,7 +155,6 @@ class VinaInstance {
             return;
         }
         this.vinaOutput = this.getParsedVinaRes(stdout)
-        //TODO now save the final content using the vinaConf details ( output ) along with the env file
         this.saveResData();
     }
     /**
