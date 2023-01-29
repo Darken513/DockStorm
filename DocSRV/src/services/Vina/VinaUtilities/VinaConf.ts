@@ -23,16 +23,22 @@ class VinaConf {
     activeSite: string = 'AS0';
     scheduleTime: number | undefined;
     resolveTime: number | undefined;
+    repeatNtimes: number = 1;
     /**
     * @constructor - The constructor accepts an optional confPath parameter, and initializes the configuration from the file if provided.
     * @param {string} rawConf - The raw content of a vina configuration file.
     */
-    constructor(confPath?: string) {
-        if (confPath) {
-            this.initFromPath(confPath);
+    constructor(options?: { confPath?: string, repitions?: number }) {
+        if (!options)
+            return;
+        if (options.repitions) {
+            this.repeatNtimes = options.repitions;
+        }
+        if (options.confPath) {
+            this.initFromPath(options.confPath);
         }
     }
-    static fromJSON(json:any){
+    static fromJSON(json: any) {
         let toret = new VinaConf();
         toret.confParsed = ParsedVinaConf.fromJSON(json.confParsed);
         toret.confPath = json.confPath;
@@ -40,6 +46,7 @@ class VinaConf {
         toret.activeSite = json.activeSite;
         toret.scheduleTime = json.scheduleTime;
         toret.resolveTime = json.resolveTime;
+        toret.repeatNtimes = json.repeatNtimes;
         return toret;
     }
     /**
@@ -76,7 +83,7 @@ class VinaConf {
     * @param {string} receptor - The receptor file path 
     * @returns {this} - The current instance of the class
     */
-    reAffectOutput() {
+    reAffectOutput(repLef: number) {
         if (!this.confParsed.receptor || !this.confParsed.ligand)
             return;
         let receptorBase = path.parse(this.confParsed.receptor).name;
@@ -87,6 +94,7 @@ class VinaConf {
             receptorBase.concat('_', ligandBase),
             this.activeSite,
             this.scheduleTime!.toString(),
+            'Try_n' + (1 + this.repeatNtimes - repLef).toString(),
             'Result.pdbqt'
         );
         if (!this.confPath) {

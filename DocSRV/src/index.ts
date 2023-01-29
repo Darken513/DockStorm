@@ -13,6 +13,7 @@ dotenv.config({ path: path.join(__dirname, '..\\configuration\\environement\\dev
 VinaScheduler.stateEmitter.addListener(SchedulerEvents.STARTED, (data) => console.log('InstanceStarted'))
 VinaScheduler.stateEmitter.addListener(SchedulerEvents.SCHEDULED, (data) => console.log('InstanceScheduled'))
 VinaScheduler.stateEmitter.addListener(SchedulerEvents.FINISHED, (data) => console.log('InstanceFinished'))
+VinaScheduler.stateEmitter.addListener(SchedulerEvents.LOOP, (data) => console.log(data))
 VinaScheduler.stateEmitter.addListener(SchedulerEvents.ALERT, (data) => console.log(data))
 VinaScheduler.stateEmitter.addListener(SchedulerEvents.PERCENTAGE, (data) => console.log(data))
 VinaScheduler.stateEmitter.addListener(SchedulerEvents.ALLDONE, (data) => console.log('allDone'))
@@ -30,7 +31,7 @@ app.get('/', (req: any, res: any) => {
 
 app.get('/schedule', (req: any, res: any) => {
     let confPath = 'C:\\Users\\Darken\\Desktop\\docking\\glibenclamide with DPP4\\conf.txt';
-    const vinaConf: VinaConf = new VinaConf(confPath)
+    const vinaConf: VinaConf = new VinaConf({ confPath, repitions: 2 })
     const vinaInstance: VinaInstance = new VinaInstance(vinaConf);
     VinaScheduler.schedule(vinaInstance);
     res.send('scheduled a vina instance');

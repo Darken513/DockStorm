@@ -25,6 +25,7 @@ class VinaInstance {
     command: string = '';
     update: EventEmitter = new EventEmitter();
     execution: child_process.ChildProcessWithoutNullStreams | undefined;
+    repetitionLeft: number = 1;
     /**
     * @constructor - The constructor accepts a VinaConf object, and assigns it to the vinaConf property.
     * @param {string} vinaConf - The Vina configuration file 
@@ -34,12 +35,19 @@ class VinaInstance {
         this.vinaConf = vinaConf;
         if (!this.vinaConf)
             return this;
+        this.repetitionLeft = this.vinaConf.repeatNtimes;
     }
 
     static fromJSON(json: any) {
         let toret = new VinaInstance();
         toret.vinaConf = VinaConf.fromJSON(json.vinaConf);
+        toret.repetitionLeft = json.repetitionLeft;
         return toret;
+    }
+
+    decreaseRepTimes() {
+        this.repetitionLeft = this.repetitionLeft - 1;
+        return this.repetitionLeft;
     }
     /**
     * Used to update the configuration of the class with new settings.
@@ -97,7 +105,7 @@ class VinaInstance {
     * and then triggers the parsing process.
     */
     runVinaCommand() {
-        this.vinaConf.reAffectOutput();
+        this.vinaConf.reAffectOutput(this.repetitionLeft);
         let confPath = this.createConfFile();
 
         if (!confPath)
@@ -135,19 +143,22 @@ class VinaInstance {
                     percentage: 100,
                     timeLeft: '0s'
                 });
-                this.update.emit(InstanceEvents.SPLIT, { msg: 'vina_split started' });
-                const splitCmd = parsePathForWin(<string>process.env.vinaSplitPath).concat(
-                    ' --input ',
-                    parsePathForWin(path.join(this.getFinalDirectory(), 'Result.pdbqt'))
-                );
-                child_process.execSync(splitCmd)
+                setTimeout(() => {
+                    this.update.emit(InstanceEvents.SPLIT, { msg: 'vina_split started' });
+                    const splitCmd = parsePathForWin(<string>process.env.vinaSplitPath).concat(
+                        ' --input ',
+                        parsePathForWin(path.join(this.getFinalDirectory(), 'Result.pdbqt'))
+                    );
+                    child_process.execSync(splitCmd)
+                    this.update.emit(InstanceEvents.CLOSED, code);
+                }, (new Date().getTime() - lastCall) / 2)
             } else {
                 LOGGER.error({
                     message: JSON.stringify(`Command failed with code ${code}`),
                     className: this.constructor.name
                 })
+                this.update.emit(InstanceEvents.CLOSED, code);
             }
-            this.update.emit(InstanceEvents.CLOSED, code);
         });
     }
 
@@ -159,7 +170,7 @@ class VinaInstance {
         this.execution.stdout.removeAllListeners()
         this.execution.removeAllListeners()
         kill.default(this.execution!.pid!, (error) => {
-            if (error === null){
+            if (error === null) {
                 this.update.emit(InstanceEvents.KILL, { msg: 'process killed' });
                 return;
             }
@@ -274,9 +285,9 @@ class VinaInstance {
     * @param {string} saveDir - The directory path where the vina output file will be saved.
     */
     saveVinaOutput(saveDir: string) {
-        writeFileAndLog(path.join(saveDir, 'vinaOutput.json'), JSON.stringify({ 
-            resolveTime: this.vinaConf.resolveTime, 
-            vinaOutput: this.vinaOutput 
+        writeFileAndLog(path.join(saveDir, 'vinaOutput.json'), JSON.stringify({
+            resolveTime: this.vinaConf.resolveTime,
+            vinaOutput: this.vinaOutput
         }), this);
     }
     /**

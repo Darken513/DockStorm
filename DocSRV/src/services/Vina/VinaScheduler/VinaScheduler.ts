@@ -25,7 +25,8 @@ class VinaScheduler {
             return {
                 vinaConf: instance.vinaConf,
                 scheduleTime: instance.vinaConf.scheduleTime,
-                resolveTime: instance.vinaConf.resolveTime
+                resolveTime: instance.vinaConf.resolveTime,
+                repetitionLeft: instance.repetitionLeft
             };
         });
         fs.writeFileSync(schedulerConfPath, JSON.stringify(parsedConf));
@@ -50,7 +51,18 @@ class VinaScheduler {
         this.currentInstance.runVinaCommand();
     }
 
+    static repeatSame() {
+        this.stateEmitter.emit(SchedulerEvents.LOOP, { repitionsLeft: this.currentInstance!.repetitionLeft });
+        this.stateEmitter.emit(SchedulerEvents.STARTED, this.currentInstance);
+        this.currentInstance!.runVinaCommand();
+    }
+
     static runNext(msg: any) {
+        if (this.currentInstance!.decreaseRepTimes()) {
+            VinaScheduler.updateSchedulerConf();
+            this.repeatSame();
+            return;
+        }
         let done = this.scheduledInstances.shift();
         done?.update.removeAllListeners();
         this.stateEmitter.emit(SchedulerEvents.FINISHED, { instance: done, exitCode: msg });

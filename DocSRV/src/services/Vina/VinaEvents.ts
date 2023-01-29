@@ -8,6 +8,7 @@ enum InstanceEvents {
 enum SchedulerEvents {
     SCHEDULED = 'scheduled',
     STARTED = 'started',
+    LOOP = 'loop',
     FINISHED = 'finished',
     PERCENTAGE = 'percentage',
     ALLDONE = 'allDone',
