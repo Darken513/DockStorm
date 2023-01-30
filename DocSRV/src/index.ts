@@ -31,7 +31,7 @@ app.get('/', (req: any, res: any) => {
 
 app.get('/schedule', (req: any, res: any) => {
     let confPath = 'C:\\Users\\Darken\\Desktop\\docking\\glibenclamide with DPP4\\conf.txt';
-    const vinaConf: VinaConf = new VinaConf({ confPath, repitions: 2 })
+    const vinaConf: VinaConf = new VinaConf({ confPath, repitions: 1 })
     const vinaInstance: VinaInstance = new VinaInstance(vinaConf);
     VinaScheduler.schedule(vinaInstance);
     res.send('scheduled a vina instance');

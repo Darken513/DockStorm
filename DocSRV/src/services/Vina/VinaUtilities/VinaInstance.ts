@@ -100,9 +100,13 @@ class VinaInstance {
         else
             return path.parse(this.vinaConf.confParsed.out!).dir;
     }
+
     /**
-    * Runs the vina command using the exec method of child_process module,
-    * and then triggers the parsing process.
+    * Run the Vina command and set events for stdout, percentage, and close.
+    * Spawns a child process with the Vina command and listens to its stdout, 
+    * emitting the percentage complete, and a close event on completion. 
+    * Calls the `onVinaRunSuccess` function on successful completion, 
+    * and logs an error message if the command fails.
     */
     runVinaCommand() {
         this.vinaConf.reAffectOutput(this.repetitionLeft);
@@ -162,6 +166,9 @@ class VinaInstance {
         });
     }
 
+    /**
+    * This function is used to kill the running process.
+    */
     killProcess() {
         if (!this.execution)
             return;
@@ -180,6 +187,11 @@ class VinaInstance {
             })
         })
     }
+
+    /**
+    * Called when the vina run is successful.
+    * @param {string} stdout - The standard output of the vina run.
+    */
     onVinaRunSuccess(stdout: string) {
         if (!stdout) {
             LOGGER.error({
