@@ -290,6 +290,7 @@ class VinaInstance {
         }
         this.saveVinaOutput(saveDir);
         this.copyOutLogCase();
+        this.copyReceptorLigand();
         this.saveParsedConf(saveDir);
     }
     /**
@@ -312,6 +313,13 @@ class VinaInstance {
         if (this.vinaConf.outputCopiesPath.log) {
             copyFileAndLog(this.vinaConf.confParsed.log!, this.vinaConf.outputCopiesPath.log, this)
         }
+    }
+    copyReceptorLigand() {
+        let saveDir = this.vinaConf!.getBasePath();
+        let receptorCopyPath = path.join(saveDir, path.parse(this.vinaConf.confParsed.receptor!).base)
+        let ligandCopyPath = path.join(saveDir, path.parse(this.vinaConf.confParsed.ligand!).base)
+        copyFileAndLog(this.vinaConf.confParsed.receptor!, receptorCopyPath, this)
+        copyFileAndLog(this.vinaConf.confParsed.ligand!, ligandCopyPath, this)
     }
     /**
     * saveParsedConf method saves the parsed configuration in a json file.

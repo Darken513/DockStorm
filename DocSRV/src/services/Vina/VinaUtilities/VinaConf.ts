@@ -70,6 +70,16 @@ class VinaConf {
         this.confParsed.center_z = vec3D.z;
     }
 
+
+    public getBasePath(){
+        let receptorBase = path.parse(this.confParsed.receptor!).name;
+        let ligandBase = path.parse(this.confParsed.ligand!).name;
+        return path.join(
+            GodService.globalConf.output.path,
+            GodService.globalConf.output.folderName,
+            receptorBase.concat('_', ligandBase)
+        );
+    }
     /**
     * reAffectOutput method updates the output file path and log file path for the given input parameters.
     * @param {number} repLef - The remaining repeat times for the process.
@@ -78,13 +88,7 @@ class VinaConf {
     reAffectOutput(repLef: number) {
         if (!this.confParsed.receptor || !this.confParsed.ligand)
             return;
-        let receptorBase = path.parse(this.confParsed.receptor).name;
-        let ligandBase = path.parse(this.confParsed.ligand).name;
-        let basePath = path.join(
-            GodService.globalConf.output.path,
-            GodService.globalConf.output.folderName,
-            receptorBase.concat('_', ligandBase)
-        );
+        let basePath = this.getBasePath();
         let compositionConf = this.getCompositionConf(basePath);
         let out = this.getOutPutPath(basePath, repLef, compositionConf);
         this.updateCompositionConf(basePath);
@@ -182,7 +186,7 @@ class VinaConf {
         this.activeSite = site
             ? site.label
             : compositionConf && compositionConf.sites
-                ? 'AS' + compositionConf.sites.length + 1
+                ? 'AS' + (compositionConf.sites.length + 1)
                 : 'AS1';
         return path.join(
             basePath,
