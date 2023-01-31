@@ -20,6 +20,7 @@ VinaScheduler.stateEmitter.addListener(SchedulerEvents.ALLDONE, (data) => consol
 
 //run load config
 GodService.loadGlobalConf();
+GodService.clearEmptyResults();
 VinaScheduler.loadSchedulerConf();
 
 //start express server
@@ -29,9 +30,15 @@ app.get('/', (req: any, res: any) => {
     res.send('Hello, World!');
 });
 
-app.get('/schedule', (req: any, res: any) => {
+app.get('/schedule/:repitions?', (req: any, res: any) => {
+    let repitions = 1;
+    if (req.params.repitions) {
+        repitions = parseInt(req.params.repitions);
+        if (Number.isNaN(repitions))
+            repitions = 1;
+    }
     let confPath = 'C:\\Users\\Darken\\Desktop\\docking\\glibenclamide with DPP4\\conf.txt';
-    const vinaConf: VinaConf = new VinaConf({ confPath, repitions: 1 })
+    const vinaConf: VinaConf = new VinaConf({ confPath, repitions: repitions })
     const vinaInstance: VinaInstance = new VinaInstance(vinaConf);
     VinaScheduler.schedule(vinaInstance);
     res.send('scheduled a vina instance');
