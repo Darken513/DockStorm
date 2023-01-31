@@ -6,12 +6,14 @@ import { ParsedVinaConf } from "./ParsedVinaConf";
 import { GodService } from '../../godService/God.Service';
 
 /**
-* @class VinaConf
-* @classdesc VinaConf is a class that represents the configuration of AutoDock Vina.
-* It provides methods to set the ligand and receptor paths, and re-affect the output file accordingly.
-* The class also provides methods to parse and initialize the configuration from a file.
-* @property {ParsedVinaConf} confParsed - An object that holds the parsed configuration values.
-* @property {string} confPath - The path to the configuration file.
+* @class VinaConf - The main class to configure and run Vina
+* @property {ParsedVinaConf} confParsed - The parsed configuration of the vina run
+* @property {string | undefined} confPath - The path of the vina configuration file
+* @property {{out: string, log: string}} outputCopiesPath - Output path for vina runs
+* @property {string} activeSite - The active site where the vina will run
+* @property {number | undefined} scheduleTime - The time at which the vina run is scheduled
+* @property {number | undefined} resolveTime - The time at which the vina run is resolved
+* @property {number} repeatNtimes - The number of times the vina run will be repeated
 */
 class VinaConf {
     confParsed: ParsedVinaConf = new ParsedVinaConf();
@@ -26,8 +28,11 @@ class VinaConf {
     repeatNtimes: number = 1;
     
     /**
-    * @constructor - The constructor accepts an optional confPath parameter, and initializes the configuration from the file if provided.
-    * @param {string} rawConf - The raw content of a vina configuration file.
+    * @constructor - The constructor creates an instance of VinaConf and initializes it with the configuration provided in the confPath parameter if provided.
+    * If no confPath is provided, the instance is created with default values.
+    * @param {object} options - The options for the VinaConf
+    * @param {string} options.confPath - The path of the vina configuration file
+    * @param {number} options.repitions - The number of times the vina run will be repeated
     */
     constructor(options?: { confPath?: string, repitions?: number }) {
         if (!options)
@@ -40,6 +45,10 @@ class VinaConf {
         }
     }
 
+    /**
+    * @method static fromJSON - Create a VinaConf object from a JSON object
+    * @param {object} json - The JSON object from which to create a VinaConf object
+    */
     static fromJSON(json: any) {
         let toret = new VinaConf();
         toret.confParsed = ParsedVinaConf.fromJSON(json.confParsed);
@@ -52,17 +61,30 @@ class VinaConf {
         return toret;
     }
 
+    /** 
+    * @method setLigandPath - Set the path of the ligand
+    * @param {string} ligand - The path of the ligand 
+    */
     setLigandPath(ligand: string) {
         this.confParsed.ligand = ligand;
         return this;
     }
     //TODO Find a way to use these in a proper way 
 
+    /** 
+    * @method setReceptorPath - Set the path of the receptor
+    * @param {string} receptor - The path of the receptor
+    */
     setReceptorPath(receptor: string) {
         this.confParsed.receptor = receptor;
         return this;
     }
-
+    
+    /** 
+    * @method setActiveSite - Set the active site where the vina will run
+    * @param {string} name - The name of the active site
+    * @param {any} vec3D - The 3D vector of the active site
+    */
     setActiveSite(name: string, vec3D: any) {
         this.activeSite = name;
         this.confParsed.center_x = vec3D.x;
@@ -70,7 +92,9 @@ class VinaConf {
         this.confParsed.center_z = vec3D.z;
     }
 
-
+    /** 
+    * @method getBasePath - Get the base path of the vina run
+    */
     public getBasePath(){
         let receptorBase = path.parse(this.confParsed.receptor!).name;
         let ligandBase = path.parse(this.confParsed.ligand!).name;
@@ -80,6 +104,7 @@ class VinaConf {
             receptorBase.concat('_', ligandBase)
         );
     }
+
     /**
     * reAffectOutput method updates the output file path and log file path for the given input parameters.
     * @param {number} repLef - The remaining repeat times for the process.
@@ -152,7 +177,7 @@ class VinaConf {
     parseAndInit(rawConf: string) {
         const lines = rawConf.replace(/\r/g, '').split('\n').filter((line) => line.trim() !== '');
         lines.forEach((line: string) => {
-            const [key, value] = line.split(" = ");
+            const [key, value] = line.trim().split(" = ");
             (<any>this.confParsed)[key] = value;
         });
     }
